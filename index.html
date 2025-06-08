@@ -4,16 +4,70 @@
   <meta charset="UTF-8">
   <title>お肉検定クイズ</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-    .question { margin-bottom: 20px; }
-    button { display: block; margin: 5px 0; width: 100%; }
-    #result { font-size: 1.2em; margin-top: 30px; font-weight: bold; }
+    body {
+      font-family: 'Arial', sans-serif;
+      padding: 20px;
+      max-width: 700px;
+      margin: auto;
+      background: #fff8f0;
+      background-image: url("images/bg.jpg");
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    h1 {
+      text-align: center;
+      color: #b22222;
+      font-family: 'Georgia', serif;
+    }
+    .question {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff6347;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e5533c;
+    }
+    #result {
+      font-size: 1.5em;
+      margin-top: 30px;
+      text-align: center;
+      font-weight: bold;
+      color: #333;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+    }
+    #afterButtons button {
+      background-color: #4682b4;
+    }
   </style>
 </head>
 <body>
   <h1>お肉検定クイズ</h1>
+  <img src="images/logo.png" alt="お肉検定ロゴ" style="display:block;margin:20px auto;width:200px;">
+  <audio id="bgm" src="music/bgm.mp3" autoplay loop></audio>
+
   <div id="quiz"></div>
   <div id="result"></div>
+  <div id="afterButtons" style="margin-top: 20px; display:none; text-align:center;">
+    <button onclick="location.reload()">もう一度挑戦する</button>
+    <button onclick="shareResult()">Xでシェアする</button>
+  </div>
   <button id="nextBtn" style="display:none;">次の問題へ</button>
   <button id="finishBtn" style="display:none;">終了</button>
 
@@ -23,12 +77,8 @@
       { q: "和牛の定義で正しいのは？", a: ["外国産牛", "交雑種", "在来種系統の肉用牛", "乳牛"], correct: 2 },
       { q: "枝肉とは何か？", a: ["骨付きの半身", "冷凍肉", "加工肉", "精肉"], correct: 0 },
       { q: "黒毛和種の特徴は？", a: ["筋が多い", "脂が少ない", "サシが多い", "赤身が硬い"], correct: 2 },
-      { q: "牛肉の格付けで最高ランクは？", a: ["A5", "B3", "C1", "A1"], correct: 0 },
-      { q: "トモバラはどこ？", a: ["後バラ", "前バラ", "ロース", "ウデ"], correct: 0 },
-      { q: "ユッケに使われるのは？", a: ["加熱肉", "加熱後冷凍", "生食用加工肉", "焼肉用"], correct: 2 },
-      { q: "精肉とは？", a: ["内臓", "骨つき肉", "骨を除いた食用肉", "枝肉"], correct: 2 },
-      { q: "牛肉の保存温度は？", a: ["30℃", "15℃", "4℃", "-20℃"], correct: 2 },
-      { q: "ミートパッカーの仕事は？", a: ["販売", "輸入", "食肉処理・整形", "牧畜"], correct: 2 }
+      { q: "牛肉の格付けで最高ランクは？", a: ["A5", "B3", "C1", "A1"], correct: 0 }
+      // ← ここに追加で問題を増やしてください
     ];
 
     let questions = [];
@@ -72,10 +122,31 @@
       document.getElementById('quiz').style.display = "none";
       document.getElementById('nextBtn').style.display = "none";
       document.getElementById('finishBtn').style.display = "none";
-      document.getElementById('result').innerText = `お疲れさまでした！正解数：${score} / ${questions.length}`;
+
+      const percent = (score / questions.length) * 100;
+      const resultText = percent >= 80
+        ? `\u5408\u683C\ud83c\udf89 \u304a\u3081\u3067\u3068\u3046\u3054\u3056\u3044\u307e\u3059\uff01\n\u6b63\u89e3\u6570\uff1a${score} / ${questions.length}`
+        : `\u4e0d\u5408\u683c\ud83d\ude35 \u307e\u305f\u6311\u6226\u3057\u3066\u304f\u3060\u3055\u3044\uff01\n\u6b63\u89e3\u6570\uff1a${score} / ${questions.length}`;
+
+      document.getElementById('result').innerText = resultText;
+      document.getElementById('afterButtons').style.display = "block";
     };
 
-    // 初期化
+    function shareResult() {
+      const percent = (score / questions.length) * 100;
+      const text = `\u304a\u8089\u691c\u5b9a\u30af\u30a4\u30ba\u306b\u6311\u6226\uff01\n\u5f97\u70b9\uff1a${score}/${questions.length} (${Math.round(percent)}%) #\u304a\u8089\u691c\u5b9a`;
+      const url = encodeURIComponent(location.href);
+      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
+      window.open(shareUrl, '_blank');
+    }
+
+    shuffle(allQuestions);
+    questions = allQuestions.slice(0, 10); // ← 100問にしたいときは .slice(0, 100) に変更
+    showQuestion();
+  </script>
+</body>
+</html>
+
     shuffle(allQuestions);
     questions = allQuestions.slice(0, 10);
     showQuestion();

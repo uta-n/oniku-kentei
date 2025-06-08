@@ -26,15 +26,14 @@
       background: #ff9999;
       color: white;
     }
-    #choices button {
-      display: block;
-      width: 100%;
-      max-width: 300px;
-      margin: 10px auto;
-    }
     #resultImage {
       width: 200px;
       margin-top: 20px;
+    }
+    #choices button {
+      display: block;
+      width: 80%;
+      margin: 10px auto;
     }
   </style>
 </head>
@@ -57,6 +56,7 @@
       <button onclick="copyURL()">🔗 URLコピー</button>
       <button onclick="shareLINE()">💬 LINE</button>
     </div>
+    <div id="adArea" style="margin-top: 30px;"></div>
   </div>
 
   <audio id="bgm" src="music/bgm.mp3" autoplay loop></audio>
@@ -65,7 +65,15 @@
     const questions = [
       { question: "牛肉の等級は何段階？", choices: ["3", "5", "7", "10"], answer: 1 },
       { question: "豚肉のビタミンB1含有量は？", choices: ["牛より多い", "同じ", "少ない", "ゼロ"], answer: 0 },
-      // 必要に応じて200~300問に増やせます
+    ];
+
+    const adSnippets = [
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+1991UA+56D6+614CX" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1"></a><img border="0" width="1" height="1" src="https://www10.a8.net/0.gif?a8mat=457EG9+1991UA+56D6+614CX" alt="">`,
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+UYNBM+5MTE+5ZMCH" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www23.a8.net/svt/bgt?aid=250608105052&wid=005&eno=01&mid=s00000026285001006000&mc=1"></a><img border="0" width="1" height="1" src="https://www19.a8.net/0.gif?a8mat=457EG9+UYNBM+5MTE+5ZMCH" alt="">`,
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+UYNBM+5MTE+60OXD" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www24.a8.net/svt/bgt?aid=250608105052&wid=005&eno=01&mid=s00000026285001011000&mc=1"></a><img border="0" width="1" height="1" src="https://www13.a8.net/0.gif?a8mat=457EG9+UYNBM+5MTE+60OXD" alt="">`,
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+TRS42+242M+C6J1D" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www29.a8.net/svt/bgt?aid=250608105050&wid=005&eno=01&mid=s00000009859002046000&mc=1"></a><img border="0" width="1" height="1" src="https://www15.a8.net/0.gif?a8mat=457EG9+TRS42+242M+C6J1D" alt="">`,
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+T6CIA+4WJK+67JU9" rel="nofollow"><img border="0" width="480" height="240" alt="" src="https://www29.a8.net/svt/bgt?aid=250608105049&wid=005&eno=01&mid=s00000022880001043000&mc=1"></a><img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=457EG9+T6CIA+4WJK+67JU9" alt="">`,
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+RZHAQ+462S+6D4GH" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www21.a8.net/svt/bgt?aid=250608105047&wid=005&eno=01&mid=s00000019450001069000&mc=1"></a><img border="0" width="1" height="1" src="https://www12.a8.net/0.gif?a8mat=457EG9+RZHAQ+462S+6D4GH" alt="">`
     ];
 
     let currentQuestion = 0;
@@ -113,6 +121,10 @@
       const resultImage = scorePercent >= 80 ? "images/pass.png" : "images/fail.png";
       document.getElementById("scoreText").textContent = `あなたの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
       document.getElementById("resultImage").src = resultImage;
+
+      // ランダムアフィリエイト表示
+      const ad = adSnippets[Math.floor(Math.random() * adSnippets.length)];
+      document.getElementById("adArea").innerHTML = ad;
     }
 
     function shareResult() {
@@ -134,16 +146,6 @@
       const url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(location.href)}`;
       window.open(url, "_blank");
     }
-  </script>
-</body>
-</html>
-
-
-
-
-    shuffle(allQuestions);
-    questions = allQuestions.slice(0, 10);
-    showQuestion();
   </script>
 </body>
 </html>

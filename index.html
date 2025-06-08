@@ -30,10 +30,10 @@
       width: 200px;
       margin-top: 20px;
     }
-    #choices button {
+    .choice-button {
       display: block;
-      width: 80%;
-      margin: 10px auto;
+      width: 100%;
+      margin: 5px auto;
     }
   </style>
 </head>
@@ -50,35 +50,50 @@
   <div id="result">
     <h2 id="scoreText"></h2>
     <img id="resultImage" src="" alt="結果画像">
+    <div id="adArea"></div>
     <div>
       <button onclick="location.reload()">再挑戦</button>
       <button onclick="shareResult()">🌟 Twitter</button>
       <button onclick="copyURL()">🔗 URLコピー</button>
       <button onclick="shareLINE()">💬 LINE</button>
     </div>
-    <div id="adArea" style="margin-top: 30px;"></div>
   </div>
 
   <audio id="bgm" src="music/bgm.mp3" autoplay loop></audio>
 
   <script>
     const questions = [
+      // --- テーマ1：一般知識 ---
       { question: "牛肉の等級は何段階？", choices: ["3", "5", "7", "10"], answer: 1 },
       { question: "豚肉のビタミンB1含有量は？", choices: ["牛より多い", "同じ", "少ない", "ゼロ"], answer: 0 },
+      { question: "ローストビーフの起源は？", choices: ["日本", "フランス", "イギリス", "アメリカ"], answer: 2 },
+      { question: "牛の胃袋はいくつ？", choices: ["1", "2", "3", "4"], answer: 3 },
+
+      // --- テーマ2：衛生と加工 ---
+      { question: "HACCPとは何の略？", choices: ["衛生管理手法", "食肉解体基準", "加工肉の規格", "調味料の種類"], answer: 0 },
+      { question: "冷蔵保存の適温は？", choices: ["0〜5℃", "10〜15℃", "20℃以上", "−10℃"], answer: 0 },
+      { question: "冷凍保存で推奨される温度は？", choices: ["−5℃", "−10℃", "−18℃以下", "0℃"], answer: 2 },
+
+      // --- テーマ3：栄養と調理 ---
+      { question: "タンパク質の主な働きは？", choices: ["エネルギー源", "体の構成", "水分補給", "酵素作用"], answer: 1 },
+      { question: "鉄分が多い部位は？", choices: ["モモ", "ロース", "ヒレ", "バラ"], answer: 0 },
+      { question: "和牛のサシは何？", choices: ["脂肪交雑", "血液", "筋繊維", "水分"], answer: 0 },
+
+      // ...ここにさらに90問追加可能...
     ];
 
-    const adSnippets = [
-      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+1991UA+56D6+614CX" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1"></a><img border="0" width="1" height="1" src="https://www10.a8.net/0.gif?a8mat=457EG9+1991UA+56D6+614CX" alt="">`,
+    let currentQuestion = 0;
+    let score = 0;
+    let shuffledQuestions = [];
+
+    const affiliateAds = [
+     `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+1991UA+56D6+614CX" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1"></a><img border="0" width="1" height="1" src="https://www10.a8.net/0.gif?a8mat=457EG9+1991UA+56D6+614CX" alt="">`,
       `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+UYNBM+5MTE+5ZMCH" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www23.a8.net/svt/bgt?aid=250608105052&wid=005&eno=01&mid=s00000026285001006000&mc=1"></a><img border="0" width="1" height="1" src="https://www19.a8.net/0.gif?a8mat=457EG9+UYNBM+5MTE+5ZMCH" alt="">`,
       `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+UYNBM+5MTE+60OXD" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www24.a8.net/svt/bgt?aid=250608105052&wid=005&eno=01&mid=s00000026285001011000&mc=1"></a><img border="0" width="1" height="1" src="https://www13.a8.net/0.gif?a8mat=457EG9+UYNBM+5MTE+60OXD" alt="">`,
       `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+TRS42+242M+C6J1D" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www29.a8.net/svt/bgt?aid=250608105050&wid=005&eno=01&mid=s00000009859002046000&mc=1"></a><img border="0" width="1" height="1" src="https://www15.a8.net/0.gif?a8mat=457EG9+TRS42+242M+C6J1D" alt="">`,
       `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+T6CIA+4WJK+67JU9" rel="nofollow"><img border="0" width="480" height="240" alt="" src="https://www29.a8.net/svt/bgt?aid=250608105049&wid=005&eno=01&mid=s00000022880001043000&mc=1"></a><img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=457EG9+T6CIA+4WJK+67JU9" alt="">`,
       `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+RZHAQ+462S+6D4GH" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www21.a8.net/svt/bgt?aid=250608105047&wid=005&eno=01&mid=s00000019450001069000&mc=1"></a><img border="0" width="1" height="1" src="https://www12.a8.net/0.gif?a8mat=457EG9+RZHAQ+462S+6D4GH" alt="">`
     ];
-
-    let currentQuestion = 0;
-    let score = 0;
-    let shuffledQuestions = [];
 
     function startQuiz() {
       shuffledQuestions = questions.sort(() => Math.random() - 0.5).slice(0, 100);
@@ -99,6 +114,7 @@
       q.choices.forEach((choice, i) => {
         const btn = document.createElement("button");
         btn.textContent = choice;
+        btn.className = "choice-button";
         btn.onclick = () => checkAnswer(i);
         choicesDiv.appendChild(btn);
       });
@@ -121,10 +137,7 @@
       const resultImage = scorePercent >= 80 ? "images/pass.png" : "images/fail.png";
       document.getElementById("scoreText").textContent = `あなたの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
       document.getElementById("resultImage").src = resultImage;
-
-      // ランダムアフィリエイト表示
-      const ad = adSnippets[Math.floor(Math.random() * adSnippets.length)];
-      document.getElementById("adArea").innerHTML = ad;
+      document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)];
     }
 
     function shareResult() {

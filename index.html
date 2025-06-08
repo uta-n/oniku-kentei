@@ -2,193 +2,136 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>お肉検定クイズ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
+  <title>お肉検定クイズ</title>
   <style>
     body {
-      font-family: 'Noto Sans JP', sans-serif;
-      background-color: #fff8f0;
-      padding: 20px;
+      font-family: 'Segoe UI', sans-serif;
+      background: #fff0f0;
+      color: #333;
       text-align: center;
+      padding: 20px;
     }
-    .question {
-      font-size: 20px;
-      margin-bottom: 15px;
-    }
-    .option {
-      display: block;
-      margin: 10px auto;
-      padding: 10px;
-      width: 80%;
-      max-width: 300px;
-      background-color: #f5cda7;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    #result {
+    #quiz, #result {
       display: none;
-      margin-top: 30px;
+      margin-top: 20px;
     }
-    #result img {
-      width: 200px;
-      margin: 20px 0;
-    }
-    #restartBtn, #shareBtn {
-      margin: 10px;
+    button {
       padding: 10px 20px;
+      margin: 10px;
       font-size: 16px;
       border-radius: 10px;
       border: none;
       cursor: pointer;
-    }
-    #restartBtn {
-      background-color: #ff9e7d;
-    }
-    #shareBtn {
-      background-color: #6fcf97;
+      background: #ff9999;
       color: white;
+    }
+    #resultImage {
+      width: 200px;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-
   <h1>お肉検定クイズ</h1>
-  <div id="quizContainer">
-    <div id="questionArea">
-      <div class="question" id="questionText"></div>
-      <div id="options"></div>
-    </div>
+  <button onclick="startQuiz()">スタート</button>
+
+  <div id="quiz">
+    <h2 id="question"></h2>
+    <div id="choices"></div>
+    <p id="progress"></p>
   </div>
 
   <div id="result">
     <h2 id="scoreText"></h2>
     <img id="resultImage" src="" alt="結果画像">
     <div>
-      <button id="restartBtn" onclick="location.reload()">再挑戦</button>
-      <button id="shareBtn" onclick="shareResult()">結果をシェア</button>
+      <button onclick="location.reload()">再挑戦</button>
+      <button onclick="shareResult()">🌟 Twitter</button>
+      <button onclick="copyURL()">🔗 URLコピー</button>
+      <button onclick="shareLINE()">💬 LINE</button>
     </div>
   </div>
 
-  <!-- BGM -->
-  <audio id="bgm" src="music/bgm.mp3" loop></audio>
+  <audio id="bgm" src="music/bgm.mp3" autoplay loop></audio>
 
   <script>
     const questions = [
-      {
-        question: "牛肉の格付けで最上級の肉質等級は？",
-        options: ["A5", "A4", "B5", "A3"],
-        answer: "A5"
-      },
-      {
-        question: "豚のロースはどの部位の肉？",
-        options: ["背中", "肩", "腹", "もも"],
-        answer: "背中"
-      },
-      {
-        question: "食肉の衛生管理基準として導入が義務付けられているのは？",
-        options: ["HACCP", "JAS", "ISO9001", "GDP"],
-        answer: "HACCP"
-      },
-      {
-        question: "牛の第一胃の名称は？",
-        options: ["ミノ", "ハチノス", "センマイ", "ギアラ"],
-        answer: "ミノ"
-      },
-      {
-        question: "鶏肉のささみはどこの筋肉？",
-        options: ["胸", "もも", "腹", "首"],
-        answer: "胸"
-      },
-      {
-        question: "和牛に含まれる「サシ」は何？",
-        options: ["脂肪", "筋", "血管", "骨"],
-        answer: "脂肪"
-      },
-      {
-        question: "牛肉を熟成させる方法でないものは？",
-        options: ["乾燥熟成", "湿式熟成", "冷凍熟成", "真空熟成"],
-        answer: "冷凍熟成"
-      },
-      {
-        question: "食肉処理場の検査官が実施する検査は？",
-        options: ["と畜検査", "動物検疫", "食品衛生検査", "税関検査"],
-        answer: "と畜検査"
-      },
-      {
-        question: "牛一頭から取れるヒレ肉は？",
-        options: ["約3kg", "約10kg", "約20kg", "約30kg"],
-        answer: "約3kg"
-      },
-      {
-        question: "合挽き肉は何の肉のミックス？",
-        options: ["牛と豚", "豚と鶏", "牛と鶏", "豚と羊"],
-        answer: "牛と豚"
-      }
-      // 今後ここに問題を追加していくだけでOK！
+      { question: "牛肉の等級は何段階？", choices: ["3", "5", "7", "10"], answer: 1 },
+      { question: "豚肉のビタミンB1含有量は？", choices: ["牛より多い", "同じ", "少ない", "ゼロ"], answer: 0 },
+      // 必要に応じて200~300問に増やせます
     ];
 
-    const totalQuestions = 10; // 後で100に変更
-    const scorePerQuestion = 100 / totalQuestions;
-    let shuffled = questions.sort(() => 0.5 - Math.random()).slice(0, totalQuestions);
-    let current = 0;
+    let currentQuestion = 0;
     let score = 0;
+    let shuffledQuestions = [];
 
-    const bgm = document.getElementById("bgm");
+    function startQuiz() {
+      shuffledQuestions = questions.sort(() => Math.random() - 0.5).slice(0, 100);
+      document.querySelector("button").style.display = 'none';
+      document.getElementById("quiz").style.display = 'block';
+      showQuestion();
+    }
 
-    function loadQuestion() {
-      if (current >= shuffled.length) {
+    function showQuestion() {
+      if (currentQuestion >= shuffledQuestions.length) {
         showResult();
         return;
       }
-
-      const q = shuffled[current];
-      document.getElementById("questionText").innerText = `${current + 1}. ${q.question}`;
-      const optionsDiv = document.getElementById("options");
-      optionsDiv.innerHTML = "";
-
-      q.options.forEach(option => {
+      const q = shuffledQuestions[currentQuestion];
+      document.getElementById("question").textContent = q.question;
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = '';
+      q.choices.forEach((choice, i) => {
         const btn = document.createElement("button");
-        btn.className = "option";
-        btn.innerText = option;
-        btn.onclick = () => {
-          if (option === q.answer) score += scorePerQuestion;
-          current++;
-          loadQuestion();
-        };
-        optionsDiv.appendChild(btn);
+        btn.textContent = choice;
+        btn.onclick = () => checkAnswer(i);
+        choicesDiv.appendChild(btn);
       });
+      document.getElementById("progress").textContent = `${currentQuestion + 1} / ${shuffledQuestions.length}`;
+    }
+
+    function checkAnswer(i) {
+      if (i === shuffledQuestions[currentQuestion].answer) {
+        score++;
+      }
+      currentQuestion++;
+      showQuestion();
     }
 
     function showResult() {
-      document.getElementById("quizContainer").style.display = "none";
-      document.getElementById("result").style.display = "block";
-
-      const passed = score >= 80;
-      document.getElementById("scoreText").innerText = `あなたの得点は ${score.toFixed(0)} 点 - ${passed ? "合格！" : "不合格…"}`;
-      document.getElementById("resultImage").src = passed ? "images/pass.png" : "images/fail.png";
+      document.getElementById("quiz").style.display = 'none';
+      document.getElementById("result").style.display = 'block';
+      const scorePercent = (score / shuffledQuestions.length) * 100;
+      const resultText = scorePercent >= 80 ? "合格！お肉マスター！" : "不合格。また挑戦してね";
+      const resultImage = scorePercent >= 80 ? "images/pass.png" : "images/fail.png";
+      document.getElementById("scoreText").textContent = `あなたの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
+      document.getElementById("resultImage").src = resultImage;
     }
 
     function shareResult() {
-      const text = `お肉検定クイズで ${score.toFixed(0)} 点だったよ！`;
+      const text = `お肉検定クイズで ${score} 点だったよ！`;
       const url = location.href;
       const shareURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
       window.open(shareURL, "_blank");
     }
 
-    // 最初に再生（ユーザー操作で）
-    window.onload = () => {
-      document.body.addEventListener("click", () => {
-        bgm.play();
-      }, { once: true });
-      loadQuestion();
-    };
+    function copyURL() {
+      navigator.clipboard.writeText(location.href).then(() => {
+        alert("URLをコピーしました！");
+      }).catch(() => {
+        alert("コピーに失敗しました");
+      });
+    }
+
+    function shareLINE() {
+      const url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(location.href)}`;
+      window.open(url, "_blank");
+    }
   </script>
 </body>
 </html>
+
 
 
     shuffle(allQuestions);

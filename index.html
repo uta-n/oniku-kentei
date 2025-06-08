@@ -3,149 +3,193 @@
 <head>
   <meta charset="UTF-8">
   <title>お肉検定クイズ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Arial', sans-serif;
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #fff8f0;
       padding: 20px;
-      max-width: 700px;
-      margin: auto;
-      background: #fff8f0;
-      background-image: url("images/bg.jpg");
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-    }
-    h1 {
       text-align: center;
-      color: #b22222;
-      font-family: 'Georgia', serif;
     }
     .question {
-      background: rgba(255, 255, 255, 0.85);
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      font-size: 18px;
-      font-weight: bold;
+      font-size: 20px;
+      margin-bottom: 15px;
     }
-    button {
+    .option {
       display: block;
       margin: 10px auto;
-      padding: 10px 20px;
-      font-size: 16px;
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      background-color: #f5cda7;
       border: none;
-      border-radius: 5px;
-      background-color: #ff6347;
-      color: white;
+      border-radius: 10px;
       cursor: pointer;
-    }
-    button:hover {
-      background-color: #e5533c;
+      font-size: 16px;
     }
     #result {
-      font-size: 1.5em;
+      display: none;
       margin-top: 30px;
-      text-align: center;
-      font-weight: bold;
-      color: #333;
-      background-color: rgba(255, 255, 255, 0.9);
-      padding: 20px;
-      border-radius: 10px;
     }
-    #afterButtons button {
-      background-color: #4682b4;
+    #result img {
+      width: 200px;
+      margin: 20px 0;
+    }
+    #restartBtn, #shareBtn {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+    }
+    #restartBtn {
+      background-color: #ff9e7d;
+    }
+    #shareBtn {
+      background-color: #6fcf97;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <h1>お肉検定クイズ</h1>
-  <img src="images/logo.png" alt="お肉検定ロゴ" style="display:block;margin:20px auto;width:200px;">
-  <audio id="bgm" src="music/bgm.mp3" autoplay loop></audio>
 
-  <div id="quiz"></div>
-  <div id="result"></div>
-  <div id="afterButtons" style="margin-top: 20px; display:none; text-align:center;">
-    <button onclick="location.reload()">もう一度挑戦する</button>
-    <button onclick="shareResult()">Xでシェアする</button>
+  <h1>お肉検定クイズ</h1>
+  <div id="quizContainer">
+    <div id="questionArea">
+      <div class="question" id="questionText"></div>
+      <div id="options"></div>
+    </div>
   </div>
-  <button id="nextBtn" style="display:none;">次の問題へ</button>
-  <button id="finishBtn" style="display:none;">終了</button>
+
+  <div id="result">
+    <h2 id="scoreText"></h2>
+    <img id="resultImage" src="" alt="結果画像">
+    <div>
+      <button id="restartBtn" onclick="location.reload()">再挑戦</button>
+      <button id="shareBtn" onclick="shareResult()">結果をシェア</button>
+    </div>
+  </div>
+
+  <!-- BGM -->
+  <audio id="bgm" src="music/bgm.mp3" loop></audio>
 
   <script>
-    const allQuestions = [
-      { q: "サーロインはどこの部位？", a: ["肩", "腰", "モモ", "バラ"], correct: 1 },
-      { q: "和牛の定義で正しいのは？", a: ["外国産牛", "交雑種", "在来種系統の肉用牛", "乳牛"], correct: 2 },
-      { q: "枝肉とは何か？", a: ["骨付きの半身", "冷凍肉", "加工肉", "精肉"], correct: 0 },
-      { q: "黒毛和種の特徴は？", a: ["筋が多い", "脂が少ない", "サシが多い", "赤身が硬い"], correct: 2 },
-      { q: "牛肉の格付けで最高ランクは？", a: ["A5", "B3", "C1", "A1"], correct: 0 }
-      // ← ここに追加で問題を増やしてください
+    const questions = [
+      {
+        question: "牛肉の格付けで最上級の肉質等級は？",
+        options: ["A5", "A4", "B5", "A3"],
+        answer: "A5"
+      },
+      {
+        question: "豚のロースはどの部位の肉？",
+        options: ["背中", "肩", "腹", "もも"],
+        answer: "背中"
+      },
+      {
+        question: "食肉の衛生管理基準として導入が義務付けられているのは？",
+        options: ["HACCP", "JAS", "ISO9001", "GDP"],
+        answer: "HACCP"
+      },
+      {
+        question: "牛の第一胃の名称は？",
+        options: ["ミノ", "ハチノス", "センマイ", "ギアラ"],
+        answer: "ミノ"
+      },
+      {
+        question: "鶏肉のささみはどこの筋肉？",
+        options: ["胸", "もも", "腹", "首"],
+        answer: "胸"
+      },
+      {
+        question: "和牛に含まれる「サシ」は何？",
+        options: ["脂肪", "筋", "血管", "骨"],
+        answer: "脂肪"
+      },
+      {
+        question: "牛肉を熟成させる方法でないものは？",
+        options: ["乾燥熟成", "湿式熟成", "冷凍熟成", "真空熟成"],
+        answer: "冷凍熟成"
+      },
+      {
+        question: "食肉処理場の検査官が実施する検査は？",
+        options: ["と畜検査", "動物検疫", "食品衛生検査", "税関検査"],
+        answer: "と畜検査"
+      },
+      {
+        question: "牛一頭から取れるヒレ肉は？",
+        options: ["約3kg", "約10kg", "約20kg", "約30kg"],
+        answer: "約3kg"
+      },
+      {
+        question: "合挽き肉は何の肉のミックス？",
+        options: ["牛と豚", "豚と鶏", "牛と鶏", "豚と羊"],
+        answer: "牛と豚"
+      }
+      // 今後ここに問題を追加していくだけでOK！
     ];
 
-    let questions = [];
+    const totalQuestions = 10; // 後で100に変更
+    const scorePerQuestion = 100 / totalQuestions;
+    let shuffled = questions.sort(() => 0.5 - Math.random()).slice(0, totalQuestions);
     let current = 0;
     let score = 0;
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
+    const bgm = document.getElementById("bgm");
 
-    function showQuestion() {
-      const q = questions[current];
-      const quizDiv = document.getElementById('quiz');
-      quizDiv.innerHTML = `<div class="question"><strong>Q${current + 1}: ${q.q}</strong></div>`;
-      q.a.forEach((option, idx) => {
-        const btn = document.createElement('button');
-        btn.textContent = option;
+    function loadQuestion() {
+      if (current >= shuffled.length) {
+        showResult();
+        return;
+      }
+
+      const q = shuffled[current];
+      document.getElementById("questionText").innerText = `${current + 1}. ${q.question}`;
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      q.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.innerText = option;
         btn.onclick = () => {
-          if (idx === q.correct) score++;
-          Array.from(quizDiv.querySelectorAll("button")).forEach(b => b.disabled = true);
-          if (current < questions.length - 1) {
-            document.getElementById('nextBtn').style.display = "block";
-          } else {
-            document.getElementById('finishBtn').style.display = "block";
-          }
+          if (option === q.answer) score += scorePerQuestion;
+          current++;
+          loadQuestion();
         };
-        quizDiv.appendChild(btn);
+        optionsDiv.appendChild(btn);
       });
     }
 
-    document.getElementById('nextBtn').onclick = () => {
-      current++;
-      showQuestion();
-      document.getElementById('nextBtn').style.display = "none";
-    };
+    function showResult() {
+      document.getElementById("quizContainer").style.display = "none";
+      document.getElementById("result").style.display = "block";
 
-    document.getElementById('finishBtn').onclick = () => {
-      document.getElementById('quiz').style.display = "none";
-      document.getElementById('nextBtn').style.display = "none";
-      document.getElementById('finishBtn').style.display = "none";
-
-      const percent = (score / questions.length) * 100;
-      const resultText = percent >= 80
-        ? `\u5408\u683C\ud83c\udf89 \u304a\u3081\u3067\u3068\u3046\u3054\u3056\u3044\u307e\u3059\uff01\n\u6b63\u89e3\u6570\uff1a${score} / ${questions.length}`
-        : `\u4e0d\u5408\u683c\ud83d\ude35 \u307e\u305f\u6311\u6226\u3057\u3066\u304f\u3060\u3055\u3044\uff01\n\u6b63\u89e3\u6570\uff1a${score} / ${questions.length}`;
-
-      document.getElementById('result').innerText = resultText;
-      document.getElementById('afterButtons').style.display = "block";
-    };
-
-    function shareResult() {
-      const percent = (score / questions.length) * 100;
-      const text = `\u304a\u8089\u691c\u5b9a\u30af\u30a4\u30ba\u306b\u6311\u6226\uff01\n\u5f97\u70b9\uff1a${score}/${questions.length} (${Math.round(percent)}%) #\u304a\u8089\u691c\u5b9a`;
-      const url = encodeURIComponent(location.href);
-      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
-      window.open(shareUrl, '_blank');
+      const passed = score >= 80;
+      document.getElementById("scoreText").innerText = `あなたの得点は ${score.toFixed(0)} 点 - ${passed ? "合格！" : "不合格…"}`;
+      document.getElementById("resultImage").src = passed ? "images/pass.png" : "images/fail.png";
     }
 
-    shuffle(allQuestions);
-    questions = allQuestions.slice(0, 10); // ← 100問にしたいときは .slice(0, 100) に変更
-    showQuestion();
+    function shareResult() {
+      const text = `お肉検定クイズで ${score.toFixed(0)} 点だったよ！`;
+      const url = location.href;
+      const shareURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+      window.open(shareURL, "_blank");
+    }
+
+    // 最初に再生（ユーザー操作で）
+    window.onload = () => {
+      document.body.addEventListener("click", () => {
+        bgm.play();
+      }, { once: true });
+      loadQuestion();
+    };
   </script>
 </body>
 </html>
+
 
     shuffle(allQuestions);
     questions = allQuestions.slice(0, 10);

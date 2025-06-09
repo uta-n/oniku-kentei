@@ -159,6 +159,13 @@
       const url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(location.href)}`;
       window.open(url, "_blank");
     }
+const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent('私は' + score + '点でした！あなたは何点取れる？')}`;
+document.getElementById('tweet-button').href = 
+  `https://twitter.com/intent/tweet?text=私は${score}点でした！あなたは何点取れる？&url=${encodeURIComponent(location.href)}`;
+<a href="https://twitter.com/intent/tweet?text=私は◯◯点でした！あなたは何点取れる？&url=https://your-site-url.com" target="_blank" rel="noopener noreferrer">Twitterでシェア</a>
+const tweetText = `私は${score}点でした！あなたは何点取れる？ #お肉検定 #クイズチャレンジ`;
+const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(location.href)}`;
+
   </script>
 </body>
 </html>

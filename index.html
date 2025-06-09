@@ -137,13 +137,16 @@
     }
 
     function shareResult() {
-      const text = `お肉検定クイズで ${score} 点だったよ！`;
+      const text = `お肉検定クイズで ${score} 点だったよ！
+あなたは何点取れる？`;
       const url = location.href;
       const shareURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
       window.open(shareURL, "_blank");
     }
 
     function copyURL() {
+const text = `お肉検定クイズで ${score} 点だったよ！
+あなたは何点取れる？`;
       navigator.clipboard.writeText(location.href).then(() => {
         alert("URLをコピーしました！");
       }).catch(() => {
@@ -152,6 +155,8 @@
     }
 
     function shareLINE() {
+const text = `お肉検定クイズで ${score} 点だったよ！
+あなたは何点取れる？`;
       const url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(location.href)}`;
       window.open(url, "_blank");
     }

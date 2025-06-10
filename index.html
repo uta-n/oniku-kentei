@@ -135,7 +135,7 @@
       document.getElementById("result").style.display = 'block';
       const scorePercent = (score / shuffledQuestions.length) * 100;
       const resultText = scorePercent >= 80 ? "合格！お肉マスター！" : "不合格。また挑戦してね";
-      const resultImage = scorePercent >= 80 ? "images/pass.png" : "images/fail.png";
+      const resultImage = scorePercent >= 80 ? "images/3EB0900A-5933-4224-9994-02B7ACB37DF9.png" : "images/c3945ea6-8a5a-4967-b245-93107683e9b1.png";
       document.getElementById("scoreText").textContent = `あなたの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
       document.getElementById("resultImage").src = resultImage;
       document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)];

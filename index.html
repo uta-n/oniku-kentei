@@ -76,20 +76,19 @@
       `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+RZHAQ+462S+6D4GH" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www21.a8.net/svt/bgt?aid=250608105047&wid=005&eno=01&mid=s00000019450001069000&mc=1"></a><img border="0" width="1" height="1" src="https://www12.a8.net/0.gif?a8mat=457EG9+RZHAQ+462S+6D4GH" alt="">`
     ];
 
-    async function fetchQuestions() {
-      try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbwJ_LEgw3eoRGxgfdB6mV2B67Zp_SpXVaCPB-YVgPoWDkZt8TvuLhXZGvCRw2JJ1cacTw/exec");
-        const data = await response.json();
-        questions = data.questions;
-        shuffledQuestions = questions.sort(() => Math.random() - 0.5).slice(0, 100);
-        document.getElementById("startButton").style.display = 'none';
-        document.getElementById("quiz").style.display = 'block';
-        showQuestion();
-      } catch (error) {
-        alert("問題の読み込みに失敗しました。");
-        console.error(error);
-      }
-    }
+   async function loadQuestions() {
+  const response = await fetch('https://script.google.com/macros/s/AKfycbwJ_LEgw3eoRGxgfdB6mV2B67Zp_SpXVaCPB-YVgPoWDkZt8TvuLhXZGvCRw2JJ1cacTw/exec');
+  const data = await response.json();
+  questions = data.map(item => ({
+    question: item.question,
+    choices: item.choices.split(','),
+    answer: parseInt(item.answer)
+  }));
+  startQuiz();
+}
+
+window.addEventListener("DOMContentLoaded", loadQuestions);
+
 
     function startQuiz() {
       fetchQuestions();

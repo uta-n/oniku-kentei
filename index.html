@@ -62,26 +62,7 @@
   <audio id="bgm" src="music/bgm.mp3" autoplay loop></audio>
 
   <script>
-    const questions = [
-      // --- テーマ1：一般知識 ---
-      { question: "牛肉の等級は何段階？", choices: ["3", "5", "7", "10"], answer: 1 },
-      { question: "豚肉のビタミンB1含有量は？", choices: ["牛より多い", "同じ", "少ない", "ゼロ"], answer: 0 },
-      { question: "ローストビーフの起源は？", choices: ["日本", "フランス", "イギリス", "アメリカ"], answer: 2 },
-      { question: "牛の胃袋はいくつ？", choices: ["1", "2", "3", "4"], answer: 3 },
-
-      // --- テーマ2：衛生と加工 ---
-      { question: "HACCPとは何の略？", choices: ["衛生管理手法", "食肉解体基準", "加工肉の規格", "調味料の種類"], answer: 0 },
-      { question: "冷蔵保存の適温は？", choices: ["0〜5℃", "10〜15℃", "20℃以上", "−10℃"], answer: 0 },
-      { question: "冷凍保存で推奨される温度は？", choices: ["−5℃", "−10℃", "−18℃以下", "0℃"], answer: 2 },
-
-      // --- テーマ3：栄養と調理 ---
-      { question: "タンパク質の主な働きは？", choices: ["エネルギー源", "体の構成", "水分補給", "酵素作用"], answer: 1 },
-      { question: "鉄分が多い部位は？", choices: ["モモ", "ロース", "ヒレ", "バラ"], answer: 0 },
-      { question: "和牛のサシは何？", choices: ["脂肪交雑", "血液", "筋繊維", "水分"], answer: 0 },
-
-      // ...ここにさらに90問追加可能...
-    ];
-
+    let questions = [];
     let currentQuestion = 0;
     let score = 0;
     let shuffledQuestions = [];
@@ -95,12 +76,24 @@
       `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+RZHAQ+462S+6D4GH" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www21.a8.net/svt/bgt?aid=250608105047&wid=005&eno=01&mid=s00000019450001069000&mc=1"></a><img border="0" width="1" height="1" src="https://www12.a8.net/0.gif?a8mat=457EG9+RZHAQ+462S+6D4GH" alt="">`
     ];
 
-   function startQuiz() {
-  shuffledQuestions = questions.sort(() => Math.random() - 0.5).slice(0, 100);
-  document.getElementById("startButton").style.display = 'none';
-  document.getElementById("quiz").style.display = 'block';
-  showQuestion();
-}
+    async function fetchQuestions() {
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbwJ_LEgw3eoRGxgfdB6mV2B67Zp_SpXVaCPB-YVgPoWDkZt8TvuLhXZGvCRw2JJ1cacTw/exec");
+        const data = await response.json();
+        questions = data.questions;
+        shuffledQuestions = questions.sort(() => Math.random() - 0.5).slice(0, 100);
+        document.getElementById("startButton").style.display = 'none';
+        document.getElementById("quiz").style.display = 'block';
+        showQuestion();
+      } catch (error) {
+        alert("問題の読み込みに失敗しました。");
+        console.error(error);
+      }
+    }
+
+    function startQuiz() {
+      fetchQuestions();
+    }
 
 
     function showQuestion() {
@@ -135,7 +128,7 @@
       document.getElementById("result").style.display = 'block';
       const scorePercent = (score / shuffledQuestions.length) * 100;
       const resultText = scorePercent >= 80 ? "合格！お肉マスター！" : "不合格。また挑戦してね";
-      const resultImage = scorePercent >= 80 ? "images/3EB0900A-5933-4224-9994-02B7ACB37DF9.png" : "images/c3945ea6-8a5a-4967-b245-93107683e9b1.png";
+      const resultImage = scorePercent >= 80 ? "images/pass.png" : "images/fail.png";
       document.getElementById("scoreText").textContent = `あなたの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
       document.getElementById("resultImage").src = resultImage;
       document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)];

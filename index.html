@@ -39,7 +39,7 @@
 </head>
 <body>
   <h1>お肉検定クイズ</h1>
-  <button id="startButton" onclick="startQuiz()">スタート</button>
+  <button id="startButton" onclick="loadQuestions()">スタート</button>
 
   <div id="quiz">
     <h2 id="question"></h2>
@@ -53,7 +53,7 @@
     <div id="adArea"></div>
     <div>
       <button onclick="location.reload()">再挑戦</button>
-      <button onclick="shareResult()">🌟 Twitter</button>
+      <button onclick="shareResult()">✨ Twitter</button>
       <button onclick="copyURL()">🔗 URLコピー</button>
       <button onclick="shareLINE()">💬 LINE</button>
     </div>
@@ -68,32 +68,30 @@
     let shuffledQuestions = [];
 
     const affiliateAds = [
-     `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+1991UA+56D6+614CX" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1"></a><img border="0" width="1" height="1" src="https://www10.a8.net/0.gif?a8mat=457EG9+1991UA+56D6+614CX" alt="">`,
-      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+UYNBM+5MTE+5ZMCH" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www23.a8.net/svt/bgt?aid=250608105052&wid=005&eno=01&mid=s00000026285001006000&mc=1"></a><img border="0" width="1" height="1" src="https://www19.a8.net/0.gif?a8mat=457EG9+UYNBM+5MTE+5ZMCH" alt="">`,
-      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+UYNBM+5MTE+60OXD" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www24.a8.net/svt/bgt?aid=250608105052&wid=005&eno=01&mid=s00000026285001011000&mc=1"></a><img border="0" width="1" height="1" src="https://www13.a8.net/0.gif?a8mat=457EG9+UYNBM+5MTE+60OXD" alt="">`,
-      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+TRS42+242M+C6J1D" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www29.a8.net/svt/bgt?aid=250608105050&wid=005&eno=01&mid=s00000009859002046000&mc=1"></a><img border="0" width="1" height="1" src="https://www15.a8.net/0.gif?a8mat=457EG9+TRS42+242M+C6J1D" alt="">`,
-      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+T6CIA+4WJK+67JU9" rel="nofollow"><img border="0" width="480" height="240" alt="" src="https://www29.a8.net/svt/bgt?aid=250608105049&wid=005&eno=01&mid=s00000022880001043000&mc=1"></a><img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=457EG9+T6CIA+4WJK+67JU9" alt="">`,
-      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+RZHAQ+462S+6D4GH" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www21.a8.net/svt/bgt?aid=250608105047&wid=005&eno=01&mid=s00000019450001069000&mc=1"></a><img border="0" width="1" height="1" src="https://www12.a8.net/0.gif?a8mat=457EG9+RZHAQ+462S+6D4GH" alt="">`
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+1991UA+56D6+614CX" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1"></a>`
     ];
 
-   async function loadQuestions() {
-  const response = await fetch('https://script.google.com/macros/s/AKfycbwJ_LEgw3eoRGxgfdB6mV2B67Zp_SpXVaCPB-YVgPoWDkZt8TvuLhXZGvCRw2JJ1cacTw/exec');
-  const data = await response.json();
-  questions = data.map(item => ({
-    question: item.question,
-    choices: item.choices.split(','),
-    answer: parseInt(item.answer)
-  }));
-  startQuiz();
-}
-
-window.addEventListener("DOMContentLoaded", loadQuestions);
-
-
-    function startQuiz() {
-      fetchQuestions();
+    async function loadQuestions() {
+      try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbwJ_LEgw3eoRGxgfdB6mV2B67Zp_SpXVaCPB-YVgPoWDkZt8TvuLhXZGvCRw2JJ1cacTw/exec');
+        const data = await response.json();
+        questions = data.map(item => ({
+          question: item.question,
+          choices: item.choices.split(','),
+          answer: parseInt(item.answer)
+        }));
+        startQuiz();
+      } catch (error) {
+        alert("クイズデータの取得に失敗しました。通信環境を確認してください。");
+      }
     }
 
+    function startQuiz() {
+      shuffledQuestions = questions.sort(() => Math.random() - 0.5).slice(0, 100);
+      document.getElementById("startButton").style.display = 'none';
+      document.getElementById("quiz").style.display = 'block';
+      showQuestion();
+    }
 
     function showQuestion() {
       if (currentQuestion >= shuffledQuestions.length) {
@@ -134,7 +132,7 @@ window.addEventListener("DOMContentLoaded", loadQuestions);
     }
 
     function shareResult() {
-      const text = `お肉検定クイズで ${score} 点だったよ！`;
+      const text = `お肉検定クイズで ${score} 点だったよ！あなたは何点とれる？`;
       const url = location.href;
       const shareURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
       window.open(shareURL, "_blank");
@@ -149,12 +147,11 @@ window.addEventListener("DOMContentLoaded", loadQuestions);
     }
 
     function shareLINE() {
-  const text = `私は ${score} 点でした！あなたは合格できる？`;
-  const url = `${location.href}`;
-  const shareURL = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url + '?message=' + text)}`;
-  window.open(shareURL, "_blank");
-}
-
+      const text = `私は ${score} 点でした！あなたは合格できる？`;
+      const url = location.href;
+      const shareURL = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url + '?message=' + text)}`;
+      window.open(shareURL, "_blank");
+    }
   </script>
 </body>
 </html>

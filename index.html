@@ -52,6 +52,14 @@
       padding: 5px;
       border-bottom: 1px solid #ccc;
     }
+    #rankingList li span.rank {
+      font-weight: bold;
+      display: inline-block;
+      width: 2em;
+    }
+    #rankingList li span.score {
+      float: right;
+    }
     #siteFooter {
       position: fixed;
       bottom: 0;
@@ -246,7 +254,7 @@
           querySnapshot.forEach((doc) => {
             const data = doc.data();
             const li = document.createElement("li");
-            li.textContent = `🥇${rank}. ${data.nickname}：${data.score}点`;
+            li.innerHTML = `<span class='rank'>${rank}</span> ${data.nickname || "匿名"} <span class='score'>${data.score}点</span>`;
             list.appendChild(li);
             rank++;
           });

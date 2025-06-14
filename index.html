@@ -35,6 +35,23 @@
       width: 100%;
       margin: 5px auto;
     }
+    #timer {
+      font-size: 20px;
+      font-weight: bold;
+      color: red;
+      margin-bottom: 10px;
+    }
+    #rankingList {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    #rankingList li {
+      padding: 5px;
+      border-bottom: 1px solid #ccc;
+    }
     #siteFooter {
       position: fixed;
       bottom: 0;
@@ -72,6 +89,7 @@
   <button id="startButton" onclick="startQuiz()">スタート</button>
 
   <div id="quiz">
+    <div id="timer"></div>
     <h2 id="question"></h2>
     <div id="choices"></div>
     <p id="progress"></p>
@@ -94,6 +112,7 @@
   </div>
 
   <audio id="bgm" src="music/bgm.mp3" autoplay loop></audio>
+
   <footer id="siteFooter">
     UTA-NAGASAKI presents ONIKU-KENTEI
   </footer>
@@ -108,7 +127,7 @@
     let timeLeft = 20;
 
     const affiliateAds = [
-      `<!-- your ads here -->`
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+1991UA+56D6+614CX" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1"></a>`
     ];
 
     async function fetchQuestions() {
@@ -151,9 +170,11 @@
 
     function startTimer() {
       clearInterval(timer);
+      timeLeft = 20;
+      document.getElementById("timer").textContent = `残り：${timeLeft}秒`;
       timer = setInterval(() => {
         timeLeft--;
-        document.getElementById("progress").textContent = `${currentQuestion + 1} / ${shuffledQuestions.length}　残り：${timeLeft}秒`;
+        document.getElementById("timer").textContent = `残り：${timeLeft}秒`;
         if (timeLeft <= 0) {
           clearInterval(timer);
           currentQuestion++;
@@ -167,9 +188,7 @@
         showResult();
         return;
       }
-      timeLeft = 20;
       startTimer();
-
       const q = shuffledQuestions[currentQuestion];
       document.getElementById("question").textContent = q.question;
       const choicesDiv = document.getElementById("choices");
@@ -198,10 +217,10 @@
       document.getElementById("result").style.display = 'block';
       const scorePercent = (score / shuffledQuestions.length) * 100;
       const resultText = scorePercent >= 80 ? "合格！お肉マスター！" : "不合格。また挑戦してね";
-      const resultImage = scorePercent >= 80 ? "images/合格.png" : "images/不合格.png";
+      const resultImage = scorePercent >= 80 ? "images/無題1318_20250615005402.png" : "images/無題1318_20250615004947.png";
       document.getElementById("scoreText").textContent = `${nickname} さんの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
       document.getElementById("resultImage").src = resultImage;
-      document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)];
+      document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)] || "広告なし";
 
       db.collection("scores").add({
         nickname: nickname,
@@ -223,16 +242,14 @@
         .then((querySnapshot) => {
           const list = document.getElementById("rankingList");
           list.innerHTML = "";
+          let rank = 1;
           querySnapshot.forEach((doc) => {
             const data = doc.data();
             const li = document.createElement("li");
-            const date = data.timestamp?.toDate().toLocaleDateString("ja-JP") || "";
-            li.textContent = `${data.nickname}：${data.score} 点（${date}）`;
+            li.textContent = `🥇${rank}. ${data.nickname}：${data.score}点`;
             list.appendChild(li);
+            rank++;
           });
-        })
-        .catch((error) => {
-          console.error("ランキング取得失敗:", error);
         });
     }
 

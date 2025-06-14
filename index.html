@@ -41,25 +41,6 @@
       color: red;
       margin-bottom: 10px;
     }
-    #rankingList {
-      list-style: none;
-      padding: 0;
-      text-align: left;
-      max-width: 300px;
-      margin: 0 auto;
-    }
-    #rankingList li {
-      padding: 5px;
-      border-bottom: 1px solid #ccc;
-    }
-    #rankingList li span.rank {
-      font-weight: bold;
-      display: inline-block;
-      width: 2em;
-    }
-    #rankingList li span.score {
-      float: right;
-    }
     #siteFooter {
       position: fixed;
       bottom: 0;
@@ -73,46 +54,8 @@
       box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-  <script>
-    const firebaseConfig = {
-       apiKey: "AIzaSyCxHvfuTiDuUYpZaUxK2yGS_fcs24TwzU8",
-  authDomain: "onikukentei.firebaseapp.com",
-  projectId: "onikukentei",
-  storageBucket: "onikukentei.firebasestorage.app",
-  messagingSenderId: "642044109204",
-  appId: "1:642044109204:web:b78c7607e9fc6806a0ef81",
- 
-    };
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
 </head>
 <body>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyCxHvfuTiDuUYpZaUxK2yGS_fcs24TwzU8",
-    authDomain: "onikukentei.firebaseapp.com",
-    projectId: "onikukentei",
-    storageBucket: "onikukentei.firebasestorage.app",
-    messagingSenderId: "642044109204",
-    appId: "1:642044109204:web:b78c7607e9fc6806a0ef81",
-    measurementId: "G-YYKJLYWNGG"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
   <h1>お肉検定クイズ</h1>
   <div id="nicknameInputArea">
     <label for="nickname">ニックネーム：</label>
@@ -136,10 +79,6 @@
       <button onclick="shareResult()">🌟 Twitter</button>
       <button onclick="copyURL()">🔗 URLコピー</button>
       <button onclick="shareLINE()">💬 LINE</button>
-    </div>
-    <div id="ranking">
-      <h3>ランキング（TOP10）</h3>
-      <ul id="rankingList"></ul>
     </div>
   </div>
 
@@ -253,36 +192,6 @@
       document.getElementById("scoreText").textContent = `${nickname} さんの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
       document.getElementById("resultImage").src = resultImage;
       document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)] || "広告なし";
-
-      db.collection("scores").add({
-        nickname: nickname,
-        score: score,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        console.log("スコア送信成功");
-        fetchRanking();
-      }).catch((error) => {
-        console.error("スコア送信失敗:", error);
-      });
-    }
-
-    function fetchRanking() {
-      db.collection("scores")
-        .orderBy("score", "desc")
-        .limit(10)
-        .get()
-        .then((querySnapshot) => {
-          const list = document.getElementById("rankingList");
-          list.innerHTML = "";
-          let rank = 1;
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const li = document.createElement("li");
-            li.innerHTML = `<span class='rank'>${rank}</span> ${data.nickname || "匿名"} <span class='score'>${data.score}点</span>`;
-            list.appendChild(li);
-            rank++;
-          });
-        });
     }
 
     function shareResult() {

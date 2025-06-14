@@ -87,10 +87,13 @@
       <button onclick="copyURL()">🔗 URLコピー</button>
       <button onclick="shareLINE()">💬 LINE</button>
     </div>
+    <div id="ranking">
+      <h3>ランキング（TOP10）</h3>
+      <ul id="rankingList"></ul>
+    </div>
   </div>
 
   <audio id="bgm" src="music/bgm.mp3" autoplay loop></audio>
-
   <footer id="siteFooter">
     UTA-NAGASAKI presents ONIKU-KENTEI
   </footer>
@@ -101,10 +104,11 @@
     let currentQuestion = 0;
     let score = 0;
     let shuffledQuestions = [];
+    let timer;
+    let timeLeft = 20;
 
     const affiliateAds = [
-      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+1991UA+56D6+614CX" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1"></a><img border="0" width="1" height="1" src="https://www10.a8.net/0.gif?a8mat=457EG9+1991UA+56D6+614CX" alt="">`,
-      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+UYNBM+5MTE+5ZMCH" rel="nofollow"><img border="0" width="300" height="250" alt="" src="https://www23.a8.net/svt/bgt?aid=250608105052&wid=005&eno=01&mid=s00000026285001006000&mc=1"></a><img border="0" width="1" height="1" src="https://www19.a8.net/0.gif?a8mat=457EG9+UYNBM+5MTE+5ZMCH" alt="">`
+      `<!-- your ads here -->`
     ];
 
     async function fetchQuestions() {
@@ -145,11 +149,27 @@
       }
     }
 
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("progress").textContent = `${currentQuestion + 1} / ${shuffledQuestions.length}　残り：${timeLeft}秒`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          currentQuestion++;
+          showQuestion();
+        }
+      }, 1000);
+    }
+
     function showQuestion() {
       if (currentQuestion >= shuffledQuestions.length) {
         showResult();
         return;
       }
+      timeLeft = 20;
+      startTimer();
+
       const q = shuffledQuestions[currentQuestion];
       document.getElementById("question").textContent = q.question;
       const choicesDiv = document.getElementById("choices");
@@ -165,6 +185,7 @@
     }
 
     function checkAnswer(i) {
+      clearInterval(timer);
       if (i === shuffledQuestions[currentQuestion].answer) {
         score++;
       }
@@ -177,14 +198,10 @@
       document.getElementById("result").style.display = 'block';
       const scorePercent = (score / shuffledQuestions.length) * 100;
       const resultText = scorePercent >= 80 ? "合格！お肉マスター！" : "不合格。また挑戦してね";
-      const resultImage = scorePercent >= 80 ? "images/無題1318_20250615005402.png" : "images/無題1318_20250615004947.png";
+      const resultImage = scorePercent >= 80 ? "images/合格.png" : "images/不合格.png";
       document.getElementById("scoreText").textContent = `${nickname} さんの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
       document.getElementById("resultImage").src = resultImage;
-      if (affiliateAds.length > 0) {
-        document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)];
-      } else {
-        document.getElementById("adArea").textContent = "スポンサー広告が読み込めませんでした。";
-      }
+      document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)];
 
       db.collection("scores").add({
         nickname: nickname,
@@ -192,9 +209,31 @@
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
         console.log("スコア送信成功");
+        fetchRanking();
       }).catch((error) => {
         console.error("スコア送信失敗:", error);
       });
+    }
+
+    function fetchRanking() {
+      db.collection("scores")
+        .orderBy("score", "desc")
+        .limit(10)
+        .get()
+        .then((querySnapshot) => {
+          const list = document.getElementById("rankingList");
+          list.innerHTML = "";
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const li = document.createElement("li");
+            const date = data.timestamp?.toDate().toLocaleDateString("ja-JP") || "";
+            li.textContent = `${data.nickname}：${data.score} 点（${date}）`;
+            list.appendChild(li);
+          });
+        })
+        .catch((error) => {
+          console.error("ランキング取得失敗:", error);
+        });
     }
 
     function shareResult() {

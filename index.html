@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>お肉検定クイズ</title>
   <style>
     body {
@@ -59,7 +59,7 @@
   <h1>お肉検定クイズ</h1>
   <div id="nicknameInputArea">
     <label for="nickname">ニックネーム：</label>
-    <input type="text" id="nickname" placeholder="例：お肉太郎">
+    <input type="text" id="nickname" placeholder="例：お肉太郎" />
   </div>
   <button id="startButton" onclick="startQuiz()">スタート</button>
 
@@ -72,7 +72,7 @@
 
   <div id="result">
     <h2 id="scoreText"></h2>
-    <img id="resultImage" src="" alt="結果画像">
+    <img id="resultImage" src="" alt="結果画像" />
     <div id="adArea"></div>
     <div>
       <button onclick="startQuiz()">再挑戦</button>
@@ -98,28 +98,10 @@
     let timeLeft = 20;
 
     const affiliateAds = [
-      <img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1"></a>
-<img border="0" width="1" height="1" src="https://www10.a8.net/0.gif?a8mat=457EG9+1991UA+56D6+614CX" alt="">
-
-<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+UYNBM+5MTE+5ZMCH" rel="nofollow">
-<img border="0" width="300" height="250" alt="" src="https://www23.a8.net/svt/bgt?aid=250608105052&wid=005&eno=01&mid=s00000026285001006000&mc=1"></a>
-<img border="0" width="1" height="1" src="https://www19.a8.net/0.gif?a8mat=457EG9+UYNBM+5MTE+5ZMCH" alt="">
-
-<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+UYNBM+5MTE+60OXD" rel="nofollow">
-<img border="0" width="300" height="250" alt="" src="https://www24.a8.net/svt/bgt?aid=250608105052&wid=005&eno=01&mid=s00000026285001011000&mc=1"></a>
-<img border="0" width="1" height="1" src="https://www13.a8.net/0.gif?a8mat=457EG9+UYNBM+5MTE+60OXD" alt="">
-
-<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+TRS42+242M+C6J1D" rel="nofollow">
-<img border="0" width="300" height="250" alt="" src="https://www29.a8.net/svt/bgt?aid=250608105050&wid=005&eno=01&mid=s00000009859002046000&mc=1"></a>
-<img border="0" width="1" height="1" src="https://www15.a8.net/0.gif?a8mat=457EG9+TRS42+242M+C6J1D" alt="">
-
-<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+T6CIA+4WJK+67JU9" rel="nofollow">
-<img border="0" width="480" height="240" alt="" src="https://www29.a8.net/svt/bgt?aid=250608105049&wid=005&eno=01&mid=s00000022880001043000&mc=1"></a>
-<img border="0" width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=457EG9+T6CIA+4WJK+67JU9" alt="">
-
-<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+RZHAQ+462S+6D4GH" rel="nofollow">
-<img border="0" width="300" height="250" alt="" src="https://www21.a8.net/svt/bgt?aid=250608105047&wid=005&eno=01&mid=s00000019450001069000&mc=1"></a>
-<img border="0" width="1" height="1" src="https://www12.a8.net/0.gif?a8mat=457EG9+RZHAQ+462S+6D4GH" alt="">
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+1991UA+56D6+614CX" rel="nofollow">
+        <img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1">
+      </a>
+      <img border="0" width="1" height="1" src="https://www10.a8.net/0.gif?a8mat=457EG9+1991UA+56D6+614CX" alt="">`
     ];
 
     async function fetchQuestions() {
@@ -145,6 +127,7 @@
         return;
       }
       localStorage.setItem("nickname", nickname);
+      document.getElementById("nicknameInputArea").style.display = 'none';
 
       currentQuestion = 0;
       score = 0;
@@ -213,6 +196,10 @@
       document.getElementById("scoreText").textContent = `${nickname} さんの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
       document.getElementById("resultImage").src = resultImage;
       document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)] || "広告なし";
+
+      // クイズリスタート用にフォームを戻す
+      document.getElementById("startButton").style.display = 'block';
+      document.getElementById("nicknameInputArea").style.display = 'none'; // 再表示したくなければ維持
     }
 
     function shareResult() {
@@ -232,7 +219,7 @@
 
     function shareLINE() {
       const text = `私は ${score} 点でした！あなたは合格できる？`;
-      const url = `${location.href}`;
+      const url = location.href;
       const shareURL = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url + '?message=' + text)}`;
       window.open(shareURL, "_blank");
     }

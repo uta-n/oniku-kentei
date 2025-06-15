@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>お肉検定クイズ</title>
   <style>
     body {
@@ -57,6 +57,7 @@
 </head>
 <body>
   <h1>お肉検定クイズ</h1>
+
   <div id="nicknameInputArea">
     <label for="nickname">ニックネーム：</label>
     <input type="text" id="nickname" placeholder="例：お肉太郎" />
@@ -75,7 +76,7 @@
     <img id="resultImage" src="" alt="結果画像" />
     <div id="adArea"></div>
     <div>
-      <button onclick="startQuiz()">再挑戦</button>
+      <button onclick="resetToStart()">再挑戦</button>
       <button onclick="shareResult()">🌟 Twitter</button>
       <button onclick="copyURL()">🔗 URLコピー</button>
       <button onclick="shareLINE()">💬 LINE</button>
@@ -100,8 +101,13 @@
     const affiliateAds = [
       `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+1991UA+56D6+614CX" rel="nofollow">
         <img border="0" width="300" height="250" alt="" src="https://www27.a8.net/svt/bgt?aid=250608105076&wid=005&eno=01&mid=s00000024153001013000&mc=1">
-      </a>
-      <img border="0" width="1" height="1" src="https://www10.a8.net/0.gif?a8mat=457EG9+1991UA+56D6+614CX" alt="">`
+      </a>`,
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+T6CIA+4WJK+67JU9" rel="nofollow">
+        <img border="0" width="300" height="250" alt="" src="https://www29.a8.net/svt/bgt?aid=250608105049&wid=005&eno=01&mid=s00000022880001043000&mc=1">
+      </a>`,
+      `<a href="https://px.a8.net/svt/ejp?a8mat=457EG9+RZHAQ+462S+6D4GH" rel="nofollow">
+        <img border="0" width="300" height="250" alt="" src="https://www21.a8.net/svt/bgt?aid=250608105047&wid=005&eno=01&mid=s00000019450001069000&mc=1">
+      </a>`
     ];
 
     async function fetchQuestions() {
@@ -128,12 +134,12 @@
       }
       localStorage.setItem("nickname", nickname);
       document.getElementById("nicknameInputArea").style.display = 'none';
-
-      currentQuestion = 0;
-      score = 0;
       document.getElementById("startButton").style.display = 'none';
       document.getElementById("result").style.display = 'none';
       document.getElementById("quiz").style.display = 'block';
+
+      currentQuestion = 0;
+      score = 0;
 
       if (questions.length > 0) {
         shuffledQuestions = questions.sort(() => Math.random() - 0.5).slice(0, 100);
@@ -195,11 +201,15 @@
       const resultImage = scorePercent >= 80 ? "images/無題1318_20250615005402.png" : "images/無題1318_20250615004947.png";
       document.getElementById("scoreText").textContent = `${nickname} さんの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
       document.getElementById("resultImage").src = resultImage;
-      document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)] || "広告なし";
+      document.getElementById("adArea").innerHTML = affiliateAds[Math.floor(Math.random() * affiliateAds.length)];
+    }
 
-      // クイズリスタート用にフォームを戻す
-      document.getElementById("startButton").style.display = 'block';
-      document.getElementById("nicknameInputArea").style.display = 'none'; // 再表示したくなければ維持
+    function resetToStart() {
+      clearInterval(timer);
+      document.getElementById("result").style.display = 'none';
+      document.getElementById("quiz").style.display = 'none';
+      document.getElementById("nicknameInputArea").style.display = '';
+      document.getElementById("startButton").style.display = '';
     }
 
     function shareResult() {

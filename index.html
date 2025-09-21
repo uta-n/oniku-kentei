@@ -79,4 +79,126 @@ let score = 0;
 let playerName = "";
 let totalQuestions = 0;
 
-// カテゴリ
+// カテゴリー別割合
+const categoryRatios = {
+  1: 0.03,
+  2: 0.18,
+  3: 0.18,
+  4: 0.12,
+  5: 0.21,
+  6: 0.21,
+  7: 0.07
+};
+
+function goToModeSelect() {
+  const nameInput = document.getElementById("nickname").value.trim();
+  if (!nameInput) { alert("名前を入力してください"); return; }
+  playerName = nameInput;
+  document.getElementById("name-screen").classList.add("hidden");
+  document.getElementById("mode-screen").classList.remove("hidden");
+}
+
+async function startGame(numQuestions) {
+  totalQuestions = numQuestions;
+  document.getElementById("mode-screen").classList.add("hidden");
+  document.getElementById("quiz-container").classList.remove("hidden");
+
+  const res = await fetch(SHEET_URL);
+  allQuestions = await res.json();
+
+  // カテゴリー別に分ける
+  let categorized = {};
+  allQuestions.forEach(q => {
+    if (!categorized[q.category]) categorized[q.category] = [];
+    q.choices = q.choices.split(",");
+    categorized[q.category].push(q);
+  });
+
+  // 割合に応じて抽出
+  selectedQuestions = [];
+  Object.keys(categoryRatios).forEach(cat => {
+    let count = Math.round(totalQuestions * categoryRatios[cat]);
+    let pool = shuffleArray(categorized[cat] || []);
+    selectedQuestions.push(...pool.slice(0, count));
+  });
+
+  while (selectedQuestions.length < totalQuestions) {
+    let extra = allQuestions[Math.floor(Math.random() * allQuestions.length)];
+    if (!selectedQuestions.includes(extra)) selectedQuestions.push(extra);
+  }
+  if (selectedQuestions.length > totalQuestions) selectedQuestions = selectedQuestions.slice(0, totalQuestions);
+
+  selectedQuestions = shuffleArray(selectedQuestions);
+  showQuestion();
+}
+
+function showQuestion() {
+  if (currentQuestionIndex >= selectedQuestions.length) { endGame(); return; }
+
+  let q = selectedQuestions[currentQuestionIndex];
+  document.getElementById("question-text").textContent = q.question;
+  let choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+
+  q.choices.forEach((choice, i) => {
+    let btn = document.createElement("button");
+    btn.textContent = choice;
+    btn.className = "choice";
+    btn.onclick = () => selectAnswer(i + 1, q.answer);
+    choicesDiv.appendChild(btn);
+  });
+
+  document.getElementById("progress").textContent =
+    `問題 ${currentQuestionIndex + 1} / ${selectedQuestions.length}`;
+}
+
+function selectAnswer(selected, correct) {
+  if (selected == correct) score++;
+  currentQuestionIndex++;
+  showQuestion();
+}
+
+function endGame() {
+  document.getElementById("quiz-container").classList.add("hidden");
+  document.getElementById("result-screen").classList.remove("hidden");
+
+  const percent = Math.round(score / selectedQuestions.length * 100);
+  const resultTitle = percent >= 80 ? "🎉 合格！お肉マスター！" : "❌ 不合格";
+  document.getElementById("result-title").textContent = resultTitle;
+  document.getElementById("score-text").textContent =
+    `${playerName}さんのスコアは ${score} / ${selectedQuestions.length} (${percent}%) です！`;
+}
+
+// シェア
+function shareURL() {
+  navigator.clipboard.writeText(location.href)
+    .then(() => alert("URLをコピーしました！"))
+    .catch(() => alert("コピーに失敗しました"));
+}
+
+function shareLINE() {
+  const text = `私は${score}点でした！あなたはお肉についてどこまで知ってる？`;
+  const url = location.href;
+  const shareURL = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url + '?message=' + text)}`;
+  window.open(shareURL, "_blank");
+}
+
+function shareX() {
+  const text = `私は${score}点でした！あなたはお肉についてどこまで知ってる？`;
+  const url = location.href;
+  const shareURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  window.open(shareURL, "_blank");
+}
+
+// シャッフル関数
+function shuffleArray(array) {
+  let arr = array.slice();
+  for (let i = arr.length-1; i>0; i--) {
+    let j = Math.floor(Math.random() * (i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+</script>
+</body>
+</html>

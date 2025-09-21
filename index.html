@@ -12,105 +12,67 @@
       text-align: center;
       padding: 20px;
     }
-    #quiz, #result, #modeSelect {
-      display: none;
-      margin-top: 20px;
-    }
+    .hidden { display: none; }
     button {
-      padding: 10px 20px;
-      margin: 10px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      background: #ff9999;
+      background: #ff6666;
       color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
     }
-    #resultImage {
-      width: 200px;
-      margin-top: 20px;
-    }
-    .choice-button {
-      display: block;
-      width: 100%;
-      margin: 5px auto;
-    }
-    #timer {
-      font-size: 20px;
-      font-weight: bold;
-      color: red;
-      margin-bottom: 10px;
-    }
-    #siteFooter {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #ffe0e0;
-      color: #333;
-      text-align: center;
-      padding: 10px 0;
-      font-size: 14px;
-      z-index: 1000;
-      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    }
+    button:hover { background: #ff3333; }
+    #quiz-container { margin-top: 20px; }
+    .choice { display: block; margin: 6px 0; }
   </style>
 </head>
 <body>
   <h1>お肉検定クイズ</h1>
 
-  <!-- 名前入力 -->
-  <div id="nicknameInputArea">
-    <label for="nickname">ニックネーム：</label>
-    <input type="text" id="nickname" placeholder="例：お肉太郎" />
+  <!-- 名前入力画面 -->
+  <div id="name-screen">
+    <p>ニックネームを入力してください：</p>
+    <input type="text" id="nickname" placeholder="例: お肉太郎">
     <br>
     <button onclick="goToModeSelect()">次へ</button>
   </div>
 
-  <!-- モード選択 -->
-  <div id="modeSelect">
-    <h2>モードを選んでください</h2>
-    <button onclick="startQuiz(20)">20問モード</button>
-    <button onclick="startQuiz(30)">30問モード</button>
-    <button onclick="startQuiz(50)">50問モード</button>
-    <button onclick="startQuiz(100)">試験モード（100問）</button>
+  <!-- モード選択画面 -->
+  <div id="mode-screen" class="hidden">
+    <h2>モードを選択してください</h2>
+    <button onclick="startGame(20)">20問モード</button>
+    <button onclick="startGame(30)">30問モード</button>
+    <button onclick="startGame(50)">50問モード</button>
+    <button onclick="startGame(100)">試験モード (100問)</button>
   </div>
 
   <!-- クイズ画面 -->
-  <div id="quiz">
-    <div id="timer"></div>
-    <h2 id="question"></h2>
+  <div id="quiz-container" class="hidden">
+    <h2 id="question-text"></h2>
     <div id="choices"></div>
     <p id="progress"></p>
   </div>
 
   <!-- 結果画面 -->
-  <div id="result">
-    <h2 id="scoreText"></h2>
-    <img id="resultImage" src="" alt="結果画像" />
-    <div id="adArea"></div>
-    <div>
-      <button onclick="resetToStart()">再挑戦</button>
-      <button onclick="shareResult()">🌟 Twitter</button>
-      <button onclick="copyURL()">🔗 URLコピー</button>
-      <button onclick="shareLINE()">💬 LINE</button>
-    </div>
+  <div id="result-screen" class="hidden">
+    <h2>結果発表</h2>
+    <p id="score-text"></p>
+    <button onclick="location.reload()">もう一度挑戦</button>
   </div>
 
-  <footer id="siteFooter">
-    UTA-NAGASAKI presents ONIKU-KENTEI
-  </footer>
-
   <script>
-    let nickname = "";
-    let questions = [];
-    let currentQuestion = 0;
-    let score = 0;
+    const SHEET_URL = "YOUR_SCRIPT_URL_HERE"; // ←Google Apps Scriptの公開URLを入れてください
+    let allQuestions = [];
     let selectedQuestions = [];
-    let timer;
-    let timeLeft = 20;
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let playerName = "";
+    let totalQuestions = 0;
 
-    // カテゴリーごとの出題率
-    const categoryRates = {
+    // カテゴリー別割合
+    const categoryRatios = {
       1: 0.03,
       2: 0.18,
       3: 0.18,
@@ -121,117 +83,102 @@
     };
 
     function goToModeSelect() {
-      nickname = document.getElementById("nickname").value.trim();
-      if (!nickname) {
-        alert("ニックネームを入力してください！");
+      const nameInput = document.getElementById("nickname").value.trim();
+      if (!nameInput) {
+        alert("名前を入力してください");
         return;
       }
-      localStorage.setItem("nickname", nickname);
-      document.getElementById("nicknameInputArea").style.display = 'none';
-      document.getElementById("modeSelect").style.display = 'block';
+      playerName = nameInput;
+      document.getElementById("name-screen").classList.add("hidden");
+      document.getElementById("mode-screen").classList.remove("hidden");
     }
 
-    async function fetchQuestions() {
-      const response = await fetch("YOUR_SCRIPT_URL_HERE");
-      const data = await response.json();
-      questions = data.map(item => ({
-        question: item.question,
-        choices: item.choices.split(','),
-        answer: parseInt(item.answer),
-        category: parseInt(item.category)
-      }));
-    }
+    async function startGame(numQuestions) {
+      totalQuestions = numQuestions;
+      document.getElementById("mode-screen").classList.add("hidden");
+      document.getElementById("quiz-container").classList.remove("hidden");
 
-    async function startQuiz(totalQuestions) {
-      document.getElementById("modeSelect").style.display = 'none';
-      document.getElementById("quiz").style.display = 'block';
+      // データ取得
+      const res = await fetch(SHEET_URL);
+      allQuestions = await res.json();
 
-      if (questions.length === 0) await fetchQuestions();
-      selectedQuestions = pickQuestionsByCategory(totalQuestions);
+      // カテゴリー別に分ける
+      let categorized = {};
+      allQuestions.forEach(q => {
+        if (!categorized[q.category]) categorized[q.category] = [];
+        q.choices = q.choices.split(",");
+        categorized[q.category].push(q);
+      });
 
-      currentQuestion = 0;
-      score = 0;
-      showQuestion();
-    }
+      // 割合に応じて抽出
+      selectedQuestions = [];
+      let assignedTotal = 0;
+      Object.keys(categoryRatios).forEach(cat => {
+        let count = Math.round(totalQuestions * categoryRatios[cat]);
+        assignedTotal += count;
+        let pool = shuffleArray(categorized[cat] || []);
+        selectedQuestions.push(...pool.slice(0, count));
+      });
 
-    function pickQuestionsByCategory(total) {
-      let result = [];
-      for (let cat = 1; cat <= 7; cat++) {
-        let num = Math.round(total * categoryRates[cat]);
-        let catQuestions = questions.filter(q => q.category === cat);
-        shuffle(catQuestions);
-        result = result.concat(catQuestions.slice(0, num));
+      // 数が合わない場合の調整
+      while (selectedQuestions.length < totalQuestions) {
+        let extra = allQuestions[Math.floor(Math.random() * allQuestions.length)];
+        if (!selectedQuestions.includes(extra)) {
+          selectedQuestions.push(extra);
+        }
       }
-      shuffle(result);
-      return result.slice(0, total);
+      if (selectedQuestions.length > totalQuestions) {
+        selectedQuestions = selectedQuestions.slice(0, totalQuestions);
+      }
+
+      selectedQuestions = shuffleArray(selectedQuestions);
+      showQuestion();
     }
 
     function showQuestion() {
-      if (currentQuestion >= selectedQuestions.length) {
-        showResult();
+      if (currentQuestionIndex >= selectedQuestions.length) {
+        endGame();
         return;
       }
-      startTimer();
-      const q = selectedQuestions[currentQuestion];
-      document.getElementById("question").textContent = q.question;
-      const choicesDiv = document.getElementById("choices");
-      choicesDiv.innerHTML = '';
+
+      let q = selectedQuestions[currentQuestionIndex];
+      document.getElementById("question-text").textContent = q.question;
+      let choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+
       q.choices.forEach((choice, i) => {
-        const btn = document.createElement("button");
+        let btn = document.createElement("button");
         btn.textContent = choice;
-        btn.className = "choice-button";
-        btn.onclick = () => checkAnswer(i);
+        btn.className = "choice";
+        btn.onclick = () => selectAnswer(i + 1, q.answer);
         choicesDiv.appendChild(btn);
       });
+
       document.getElementById("progress").textContent =
-        `${currentQuestion + 1} / ${selectedQuestions.length}`;
+        `問題 ${currentQuestionIndex + 1} / ${selectedQuestions.length}`;
     }
 
-    function startTimer() {
-      clearInterval(timer);
-      timeLeft = 20;
-      document.getElementById("timer").textContent = `残り：${timeLeft}秒`;
-      timer = setInterval(() => {
-        timeLeft--;
-        document.getElementById("timer").textContent = `残り：${timeLeft}秒`;
-        if (timeLeft <= 0) {
-          clearInterval(timer);
-          currentQuestion++;
-          showQuestion();
-        }
-      }, 1000);
-    }
-
-    function checkAnswer(i) {
-      clearInterval(timer);
-      if (i === selectedQuestions[currentQuestion].answer) score++;
-      currentQuestion++;
+    function selectAnswer(selected, correct) {
+      if (selected == correct) score++;
+      currentQuestionIndex++;
       showQuestion();
     }
 
-    function showResult() {
-      document.getElementById("quiz").style.display = 'none';
-      document.getElementById("result").style.display = 'block';
-      const scorePercent = (score / selectedQuestions.length) * 100;
-      const resultText = scorePercent >= 80 ? "合格！お肉マスター！" : "不合格。また挑戦してね";
-      const resultImage = scorePercent >= 80 ? "images/pass.png" : "images/fail.png";
-      document.getElementById("scoreText").textContent =
-        `${nickname} さんの得点は ${score} 点 (${Math.round(scorePercent)}%) - ${resultText}`;
-      document.getElementById("resultImage").src = resultImage;
+    function endGame() {
+      document.getElementById("quiz-container").classList.add("hidden");
+      document.getElementById("result-screen").classList.remove("hidden");
+      document.getElementById("score-text").textContent =
+        `${playerName}さんのスコアは ${score} / ${selectedQuestions.length} です！`;
     }
 
-    function resetToStart() {
-      clearInterval(timer);
-      document.getElementById("result").style.display = 'none';
-      document.getElementById("nicknameInputArea").style.display = '';
-      document.getElementById("startButton").style.display = '';
-    }
-
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+    // シャッフル関数
+    function shuffleArray(array) {
+      let arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
+      return arr;
     }
   </script>
 </body>

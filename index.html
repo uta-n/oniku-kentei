@@ -1,186 +1,82 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>お肉検定クイズ</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #fff0f0;
-      color: #333;
-      text-align: center;
-      padding: 20px;
-    }
-    .hidden { display: none; }
-    button {
-      background: #ff6666;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      margin: 8px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    button:hover { background: #ff3333; }
-    #quiz-container { margin-top: 20px; }
-    .choice { display: block; margin: 6px 0; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>お肉検定クイズ</title>
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #fff0f0;
+  color: #333;
+  text-align: center;
+  padding: 20px;
+}
+.hidden { display: none; }
+button {
+  background: #ff6666;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  margin: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+button:hover { background: #ff3333; }
+#quiz-container { margin-top: 20px; }
+.choice { display: block; margin: 8px auto; width: 80%; max-width: 400px; text-align: center; }
+#mode-screen button { display: block; width: 200px; margin: 10px auto; }
+#result-screen h2 { font-size: 2rem; }
+#share-buttons button { margin: 5px; }
+</style>
 </head>
 <body>
-  <h1>お肉検定クイズ</h1>
+<h1>お肉検定クイズ</h1>
 
-  <!-- 名前入力画面 -->
-  <div id="name-screen">
-    <p>ニックネームを入力してください：</p>
-    <input type="text" id="nickname" placeholder="例: お肉太郎">
-    <br>
-    <button onclick="goToModeSelect()">次へ</button>
+<!-- 名前入力画面 -->
+<div id="name-screen">
+  <p>ニックネームを入力してください：</p>
+  <input type="text" id="nickname" placeholder="例: お肉太郎">
+  <br>
+  <button onclick="goToModeSelect()">次へ</button>
+</div>
+
+<!-- モード選択画面 -->
+<div id="mode-screen" class="hidden">
+  <h2>モードを選択してください</h2>
+  <button onclick="startGame(20)">20問モード</button>
+  <button onclick="startGame(30)">30問モード</button>
+  <button onclick="startGame(50)">50問モード</button>
+  <button onclick="startGame(100)">試験モード (100問)</button>
+</div>
+
+<!-- クイズ画面 -->
+<div id="quiz-container" class="hidden">
+  <h2 id="question-text"></h2>
+  <div id="choices"></div>
+  <p id="progress"></p>
+</div>
+
+<!-- 結果画面 -->
+<div id="result-screen" class="hidden">
+  <h2 id="result-title"></h2>
+  <p id="score-text"></p>
+  <button onclick="location.reload()">もう一度挑戦</button>
+  <div id="share-buttons">
+    <button onclick="shareURL()">🔗 URLコピー</button>
+    <button onclick="shareLINE()">💬 LINE</button>
+    <button onclick="shareX()">🐦 X</button>
   </div>
+</div>
 
-  <!-- モード選択画面 -->
-  <div id="mode-screen" class="hidden">
-    <h2>モードを選択してください</h2>
-    <button onclick="startGame(20)">20問モード</button>
-    <button onclick="startGame(30)">30問モード</button>
-    <button onclick="startGame(50)">50問モード</button>
-    <button onclick="startGame(100)">試験モード (100問)</button>
-  </div>
+<script>
+const SHEET_URL = "YOUR_SCRIPT_URL_HERE"; // ←Google Apps ScriptのURL
+let allQuestions = [];
+let selectedQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let playerName = "";
+let totalQuestions = 0;
 
-  <!-- クイズ画面 -->
-  <div id="quiz-container" class="hidden">
-    <h2 id="question-text"></h2>
-    <div id="choices"></div>
-    <p id="progress"></p>
-  </div>
-
-  <!-- 結果画面 -->
-  <div id="result-screen" class="hidden">
-    <h2>結果発表</h2>
-    <p id="score-text"></p>
-    <button onclick="location.reload()">もう一度挑戦</button>
-  </div>
-
-  <script>
-    const SHEET_URL = "https://script.google.com/macros/s/AKfycbwY65pnlZYiw_D2NIOHxpPds9TdEOkqjEZsLN8jkYFkH5l8Nafo44JH7hyQrKb_VCYPOg/exec"; // ←Google Apps Scriptの公開URLを入れてください
-    let allQuestions = [];
-    let selectedQuestions = [];
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let playerName = "";
-    let totalQuestions = 0;
-
-    // カテゴリー別割合
-    const categoryRatios = {
-      1: 0.03,
-      2: 0.18,
-      3: 0.18,
-      4: 0.12,
-      5: 0.21,
-      6: 0.21,
-      7: 0.07
-    };
-
-    function goToModeSelect() {
-      const nameInput = document.getElementById("nickname").value.trim();
-      if (!nameInput) {
-        alert("名前を入力してください");
-        return;
-      }
-      playerName = nameInput;
-      document.getElementById("name-screen").classList.add("hidden");
-      document.getElementById("mode-screen").classList.remove("hidden");
-    }
-
-    async function startGame(numQuestions) {
-      totalQuestions = numQuestions;
-      document.getElementById("mode-screen").classList.add("hidden");
-      document.getElementById("quiz-container").classList.remove("hidden");
-
-      // データ取得
-      const res = await fetch(SHEET_URL);
-      allQuestions = await res.json();
-
-      // カテゴリー別に分ける
-      let categorized = {};
-      allQuestions.forEach(q => {
-        if (!categorized[q.category]) categorized[q.category] = [];
-        q.choices = q.choices.split(",");
-        categorized[q.category].push(q);
-      });
-
-      // 割合に応じて抽出
-      selectedQuestions = [];
-      let assignedTotal = 0;
-      Object.keys(categoryRatios).forEach(cat => {
-        let count = Math.round(totalQuestions * categoryRatios[cat]);
-        assignedTotal += count;
-        let pool = shuffleArray(categorized[cat] || []);
-        selectedQuestions.push(...pool.slice(0, count));
-      });
-
-      // 数が合わない場合の調整
-      while (selectedQuestions.length < totalQuestions) {
-        let extra = allQuestions[Math.floor(Math.random() * allQuestions.length)];
-        if (!selectedQuestions.includes(extra)) {
-          selectedQuestions.push(extra);
-        }
-      }
-      if (selectedQuestions.length > totalQuestions) {
-        selectedQuestions = selectedQuestions.slice(0, totalQuestions);
-      }
-
-      selectedQuestions = shuffleArray(selectedQuestions);
-      showQuestion();
-    }
-
-    function showQuestion() {
-      if (currentQuestionIndex >= selectedQuestions.length) {
-        endGame();
-        return;
-      }
-
-      let q = selectedQuestions[currentQuestionIndex];
-      document.getElementById("question-text").textContent = q.question;
-      let choicesDiv = document.getElementById("choices");
-      choicesDiv.innerHTML = "";
-
-      q.choices.forEach((choice, i) => {
-        let btn = document.createElement("button");
-        btn.textContent = choice;
-        btn.className = "choice";
-        btn.onclick = () => selectAnswer(i + 1, q.answer);
-        choicesDiv.appendChild(btn);
-      });
-
-      document.getElementById("progress").textContent =
-        `問題 ${currentQuestionIndex + 1} / ${selectedQuestions.length}`;
-    }
-
-    function selectAnswer(selected, correct) {
-      if (selected == correct) score++;
-      currentQuestionIndex++;
-      showQuestion();
-    }
-
-    function endGame() {
-      document.getElementById("quiz-container").classList.add("hidden");
-      document.getElementById("result-screen").classList.remove("hidden");
-      document.getElementById("score-text").textContent =
-        `${playerName}さんのスコアは ${score} / ${selectedQuestions.length} です！`;
-    }
-
-    // シャッフル関数
-    function shuffleArray(array) {
-      let arr = array.slice();
-      for (let i = arr.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-  </script>
-</body>
-</html>
-
+// カテゴリ
